@@ -228,7 +228,7 @@ This repository contains the implementation and generated simulation artefacts; 
 
 ## Acknowledgement of LLM assistance
 
-LLM-assisted tools were present in the supplied development workspace. The exact scope of their contribution to the code and documentation should be stated by the project authors based on how those tools were used. The project team remains responsible for reviewing and validating equations, implementation, test results, references, and all engineering claims.
+LLM-assisted tools were present in the supplied development workspace. Their specific contribution to code and documentation should be described accurately wherever relevant. Responsibility for reviewing and validating equations, implementation, test results, references, and engineering claims remains with the maintainers of this repository.
 
 ## License
 
