@@ -39,6 +39,16 @@ Autonomous-Orbital-Docking-Tumbling-Target/
 │   └── compare_observer.py
 ├── tests/
 │   └── test_*.py
+├── MATLAB/
+│   └── EKF_Docking_Simulation/
+│       ├── main_closedloop.m
+│       ├── navigation_ekf.m
+│       ├── attitude_dynamics.m
+│       ├── cw_dynamics.m
+│       ├── rk4_step.m
+│       ├── guidance_smc.m
+│       ├── attitude_smc.m
+│       └── README.md
 └── outputs/
     ├── figs/scenarioN/
     ├── data/
@@ -167,6 +177,16 @@ Run the full-scenario integration tests:
 python -m pytest -m slow -q
 ```
 
+## Supplementary MATLAB EKF docking simulation
+
+A separate MATLAB implementation is included in [`MATLAB/EKF_Docking_Simulation/`](MATLAB/EKF_Docking_Simulation/). It combines a seven-state EKF for target attitude quaternion and body angular velocity with CW relative translational dynamics, rigid-body attitude dynamics, and translational and attitude sliding-mode controllers.
+
+The main entry point is `main_closedloop.m`; the EKF is implemented in `navigation_ekf.m`. The EKF uses a direct noisy measurement model for all seven state components (`H = I_7)). It does not estimate relative position and velocity, and it is not a complete camera/LiDAR navigation pipeline.
+
+This MATLAB simulation is **separate from the Python nonlinear 6-DOF reproduction**. It uses CW linearised relative translation and torque-free target rotational propagation in the supplied main script. It does not implement the Python model's full disturbance set or the same five-condition terminal docking gate. Its plots should therefore not be conflated with the Python four-scenario docking-time and RLS-RFF results.
+
+See the [MATLAB simulation README](MATLAB/EKF_Docking_Simulation/README.md) for run instructions and implementation limitations.
+
 ## Research reference
 
 The baseline controller is reproduced from:
@@ -191,7 +211,7 @@ This was documented as a team project. Individual technical contributions should
 - The work is a numerical simulation, not a hardware or in-orbit demonstration.
 - The model does not include discrete thruster allocation or plume-impingement effects.
 - Atmospheric drag uses a simplified static exponential-atmosphere model.
-- The EKF sensor-fusion extension mentioned in associated course material is not included in the source files in this repository release.
+- The supplementary MATLAB EKF uses an idealised direct-measurement assumption for the target quaternion and angular velocity; it is not a full relative-navigation sensor pipeline.
 - Simulation success under the implemented model and terminal gate does not establish flight qualification or real spacecraft performance.
 
 ## Acknowledgement of LLM assistance
