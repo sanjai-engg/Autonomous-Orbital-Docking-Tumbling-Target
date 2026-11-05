@@ -18,13 +18,11 @@ The project reproduces four published docking scenarios and studies implementati
 
 ## Repository structure
 
-The following structure is intended for the source code, tests, report, and generated outputs:
+The following structure is intended for the source code, tests, and generated outputs. The course report PDF is intentionally not included; the repository is focused on the implementation and reproducible technical artefacts:
 
 ```text
 Autonomous-Orbital-Docking-Tumbling-Target/
 ├── README.md
-├── Report/
-│   └── Orbital_Docking_Reproduction_Report.pdf
 ├── Python/
 │   ├── frames.py
 │   ├── dynamics.py
