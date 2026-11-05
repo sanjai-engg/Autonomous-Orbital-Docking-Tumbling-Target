@@ -177,15 +177,37 @@ Run the full-scenario integration tests:
 python -m pytest -m slow -q
 ```
 
-## Supplementary MATLAB EKF docking simulation
+## Supplementary MATLAB EKF-assisted docking simulation
 
-A separate MATLAB implementation is included in [`MATLAB/EKF_Docking_Simulation/`](MATLAB/EKF_Docking_Simulation/). It combines a seven-state EKF for target attitude quaternion and body angular velocity with CW relative translational dynamics, rigid-body attitude dynamics, and translational and attitude sliding-mode controllers.
+A separate MATLAB closed-loop simulation is included in [`MATLAB/EKF_Docking_Simulation/`](MATLAB/EKF_Docking_Simulation/). Its main purpose is to test how an estimated target attitude and angular velocity can be fed into translational and attitude sliding-mode guidance during a tumbling-target docking approach.
 
-The main entry point is `main_closedloop.m`; the EKF is implemented in `navigation_ekf.m`. The EKF uses a direct noisy measurement model for all seven state components (`H = I_7)). It does not estimate relative position and velocity, and it is not a complete camera/LiDAR navigation pipeline.
+### What the MATLAB simulation does
 
-This MATLAB simulation is **separate from the Python nonlinear 6-DOF reproduction**. It uses CW linearised relative translation and torque-free target rotational propagation in the supplied main script. It does not implement the Python model's full disturbance set or the same five-condition terminal docking gate. Its plots should therefore not be conflated with the Python four-scenario docking-time and RLS-RFF results.
+1. **Propagates target tumble.** The target attitude is represented by a scalar-first quaternion and its body angular velocity. The script propagates this seven-state rigid-body model using Euler's rotational equations and quaternion kinematics, with zero applied target torque in the supplied run.
+2. **Creates a simulated target measurement.** At each 0.1 s step, independent Gaussian noise is added to the four quaternion components and three angular-velocity components. The resulting seven-element vector is passed to the EKF. This is an idealised direct-state measurement model, not a simulated camera image-processing or LiDAR point-cloud pipeline.
+3. **Estimates target attitude and rate with a seven-state EKF.** [`navigation_ekf.m`](MATLAB/EKF_Docking_Simulation/navigation_ekf.m) predicts the state using the rigid-body model and RK4, approximates the state-transition Jacobian by finite differences, propagates covariance, applies a Kalman measurement correction with (H=I_7), and normalises the quaternion after correction.
+4. **Estimates the moving docking-port state.** The estimated quaternion rotates a fixed 2 m body-frame port offset into the simulation frame. The script then forms an estimated port velocity using the estimated angular velocity and the port-position vector.
+5. **Commands chaser translation.** [`guidance_smc.m`](MATLAB/EKF_Docking_Simulation/guidance_smc.m) forms a translational sliding surface from chaser-to-port position and velocity errors, cancels the nominal Clohessy–Wiltshire (CW) orbital terms, and adds a sign-based robust acceleration term. The resulting acceleration command is converted to force using chaser mass.
+6. **Commands chaser attitude.** [`attitude_smc.m`](MATLAB/EKF_Docking_Simulation/attitude_smc.m) forms a relative quaternion error and angular-velocity error, then combines nominal gyroscopic compensation with a sign-based robust torque term.
+7. **Propagates the chaser and generates outputs.** The chaser's CW translation and rigid-body attitude are integrated using RK4. The script writes a 3D relative trajectory plot, an attitude-rate comparison plot, an EKF estimate plot, and an MP4 animation.
 
-See the [MATLAB simulation README](MATLAB/EKF_Docking_Simulation/README.md) for run instructions and implementation limitations.
+### What is distinctive about this extension
+
+The engineering contribution is the **integration of a target attitude/rate estimator into a closed-loop tumbling-target docking simulation**, so the guidance and attitude controllers use estimated target motion rather than simply reading the target rotational state directly. This is an application-level estimator/controller integration; it should not be presented as a new EKF formulation.
+
+### Scope and interpretation limits
+
+- The target measurement is a noisy version of the full quaternion and angular-velocity state. The filter therefore assumes all seven state components are directly observable. It does not estimate chaser-relative position or velocity.
+- The EKF applies an additive correction to quaternion components followed by normalisation. It is not a multiplicative/error-state quaternion EKF.
+- The numerical Jacobian perturbs state components directly; perturbed quaternions are not normalised before each perturbed propagation.
+- The covariance update uses the simplified ((I-KH)P) expression rather than the Joseph stabilised form.
+- The target is propagated torque-free in the supplied main script. The MATLAB model does not include the Python simulation's atmospheric drag, differential (J_2), gravity-gradient disturbance, or RLS-RFF disturbance observer.
+- The translational dynamics are CW-linearised. The script does not implement the Python simulator's five-condition terminal docking gate or calculate a docking-success time. Its plots should not be interpreted as passing the Python docking criteria.
+- **Frame-consistency check required:** the script crosses the estimated angular-velocity vector with the port-position vector after rotating the latter into the simulation frame. Confirm that both vectors are expressed in the same frame under the chosen quaternion convention; if angular velocity remains body-frame, transform it before computing port velocity.
+- The EKF performance plot creates a separate noisy trace after the simulation; that plotted trace is not the exact measurement sequence used internally by the EKF.
+- The MATLAB scripts have been inspected as source, but their execution in MATLAB has not been independently verified as part of this repository review.
+
+See the [MATLAB simulation README](MATLAB/EKF_Docking_Simulation/README.md) for run instructions, file roles, and implementation details.
 
 ## Research reference
 
@@ -195,16 +217,6 @@ P. Abdollahzadeh and S. M. Esmailifar, “Automatic orbital docking with tumblin
 DOI: [10.1016/j.asr.2020.12.016](https://doi.org/10.1016/j.asr.2020.12.016).
 
 This repository contains the implementation and generated simulation artefacts; it does not redistribute the publisher's paper PDF.
-
-## Team and authorship
-
-The course-project report supplied with the source archive lists the project team as:
-
-- Sanjai V
-- Satyadarshi Das
-- Omkumar Dineshbhai Delvadia
-
-This was documented as a team project. Individual technical contributions should be described accurately by the person presenting the work; this repository should not imply that all team contributions were performed by one person.
 
 ## Limitations
 
