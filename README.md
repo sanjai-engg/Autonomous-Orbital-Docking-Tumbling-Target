@@ -122,7 +122,7 @@ The report identifies modelling limitations including the absence of thruster al
 
 ## Acknowledgement of LLM assistance
 
-Large language models (LLMs), including ChatGPT, may be used as supporting tools for documentation, code explanation, and repository organisation. Any such use should be disclosed with the actual scope of assistance. LLM-generated suggestions are not experimental evidence; the project authors remain responsible for verifying equations, implementation, results, citations, and technical claims.
+ChatGPT was used as a supporting tool to help draft and organise this repository README and its project structure. This assistance did not include implementing or independently validating the simulation code, deriving the reported numerical results, or performing the project experiments. The project authors remain responsible for the technical content, equations, code, results, references, and all engineering claims.
 
 ## License
 
