@@ -19,7 +19,7 @@ function force_cmd = guidance_smc(state_chaser, state_target_port, mass_chaser, 
     % Nominal acceleration cancelling the CW orbital terms.
     x = pos_chaser(1);
     z = pos_chaser(3);
-    vy = vel_chaser(5-3); % y-velocity is the fifth element of the state.
+    vy = vel_chaser(2);
     vx = vel_chaser(1);
     a_cw = [3*n^2*x + 2*n*vy;
             -2*n*vx;
